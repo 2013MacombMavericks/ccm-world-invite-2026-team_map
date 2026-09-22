@@ -701,7 +701,7 @@
         "short_name": "SpringHill Suites Chicago O'Hare by Marriott",
         "address": "8101 W Higgins Rd, Chicago, IL 60631",
         "type": "hotel",
-        "free_parking_breakfast": false
+        "free_parking_breakfast": true
       }
     },
     {
