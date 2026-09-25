@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="2013 Macomb Mavericks CCM World Invite 2026 team map">
+<title>2013 Macomb Mavericks — CCM World Invite 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+ --bg:#0f1419;--panel:rgba(18,24,30,.95);--panel2:rgba(24,31,38,.96);
+ --text:#eef4f8;--muted:#aab7c2;--line:#3a4650;--accent:#4da3ff;
+ --rink:#2490ff;--hotel:#8f56cc;--star:#f2b705;--poi:#35a86b;
+}
+html,body,#map{height:100%;margin:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+#map{width:100%}
+.leaflet-control-zoom a,.leaflet-control-layers,.leaflet-control-scale-line{filter:brightness(.92)}
+.header{
+ position:absolute;z-index:1200;top:10px;left:50%;transform:translateX(-50%);
+ background:rgba(12,17,22,.92);border:1px solid #ffffff18;border-radius:12px;
+ box-shadow:0 4px 18px #0008;padding:9px 15px;text-align:center;
+ width:min(760px,calc(100% - 38px));pointer-events:none
+}
+.header h1{margin:0;font-size:17px;font-weight:700}.header p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.panel{
+ background:var(--panel);border:1px solid #ffffff1c;border-radius:10px;
+ box-shadow:0 4px 18px #0009;padding:10px;width:288px;max-height:80vh;overflow:auto
+}
+.panel h3{font-size:14px;margin:0 0 7px}.panel h4{font-size:12px;margin:12px 0 5px;border-top:1px solid var(--line);padding-top:9px}
+.panel label{font-size:11px;font-weight:700;display:block;margin:7px 0 3px;color:#dbe5ec}
+.panel input,.panel select{
+ width:100%;box-sizing:border-box;background:#11181e;color:#eef4f8;border:1px solid #4a5863;
+ border-radius:6px;padding:7px 8px;font-size:12px
+}
+.panel button{
+ width:100%;margin-top:6px;border:0;border-radius:6px;padding:7px 8px;background:#236eb5;
+ color:white;font-weight:700;cursor:pointer
+}
+.panel button.secondary{background:#495863}.panel button:hover{filter:brightness(1.12)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}.grid2 button{margin:0;font-size:11px}
+.status{font-size:11px;line-height:1.4;border-top:1px solid var(--line);padding-top:8px;margin-top:9px;color:#dce7ee}
+.hockey-wrap{width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.hockey-svg{filter:drop-shadow(0 1px 2px #000b)}
+.hotel{width:23px;height:23px;border-radius:5px;background:var(--hotel);border:2px solid #fff;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;box-shadow:0 1px 5px #000b}
+.starhotel{width:30px;height:30px;border-radius:50%;background:var(--star);border:2px solid #fff;color:#171717;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 1px 6px #000b}
+.poi{width:20px;height:20px;border-radius:50%;background:var(--poi);border:2px solid white;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px}
+.facility-label,.hotel-label,.poi-label{font-size:8px;font-weight:600;padding:1px 4px;white-space:nowrap;box-shadow:none;border-radius:4px}
+.facility-label{background:rgba(14,20,25,.88);border:1px solid rgba(77,163,255,.55);color:#eaf5ff}
+.hotel-label{background:rgba(30,19,38,.92);border:1px solid rgba(187,125,242,.62);color:#f3e8ff}
+.poi-label{background:rgba(15,31,22,.92);border:1px solid rgba(80,193,121,.55);color:#e8fff0}
+.facility-label:before,.hotel-label:before,.poi-label:before{display:none}.hidden-label{opacity:0!important}
+.popup{color:#172028}.popup b{font-size:14px}.popup .addr{margin:5px 0 8px;line-height:1.35}.amenity{font-size:11px;font-weight:700;color:#765d00}
+.popup button{width:100%;margin-top:5px;border:0;border-radius:5px;padding:7px;background:#236eb5;color:white;font-weight:700}
+.legend{background:rgba(18,24,30,.94);color:#eef4f8;border:1px solid #ffffff18;border-radius:8px;padding:7px 9px;box-shadow:0 2px 10px #0008;font-size:10px}
+.legend div{margin:3px 0}
+.modalbg{display:none;position:fixed;z-index:4000;inset:0;background:#000a;align-items:center;justify-content:center;padding:18px}.modalbg.open{display:flex}
+.modal{background:#182028;color:#eef4f8;border:1px solid #ffffff22;border-radius:12px;padding:18px;width:min(430px,95%);box-shadow:0 10px 34px #000c}
+.modal h2{margin-top:0}.modal p{font-size:11px;color:#b8c5ce}.modal a{display:block;color:white;text-decoration:none;text-align:center;font-weight:700;padding:10px;margin:8px 0;border-radius:7px}.g{background:#1a73e8}.a{background:#111;border:1px solid #555}.w{background:#087e8b}.modal button{width:100%;padding:8px;border-radius:6px;border:1px solid #56636d;background:#26323b;color:white}
+@media(max-width:700px){.header{top:6px;padding:7px 10px}.header h1{font-size:14px}.header p{font-size:9px}.panel{width:220px;max-height:77vh}.facility-label,.hotel-label,.poi-label{font-size:7px}}
+
+/* Free dark basemap treatment: standard OpenStreetMap tiles, darkened locally.
+   This avoids third-party basemap API keys while preserving OSM attribution. */
+.leaflet-tile-pane{
+ filter:brightness(.58) invert(1) contrast(1.35) hue-rotate(185deg) saturate(.48);
+}
+.leaflet-container{
+ background:#0a1015;
+}
+
+
+.panel-head{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px
+}
+.panel-head h3{margin:0!important}
+.panel .hide-tools{
+ width:30px!important;height:30px;margin:0!important;padding:0!important;
+ border-radius:6px;background:#3b4852!important;font-size:18px;line-height:30px;
+ flex:0 0 auto
+}
+.panel-hidden{display:none!important}
+.show-tools{
+ display:none;position:absolute;z-index:1300;top:72px;right:10px;
+ border:1px solid #ffffff26;border-radius:9px;background:rgba(18,24,30,.95);
+ color:#eef4f8;padding:9px 12px;font-weight:700;font-size:12px;
+ box-shadow:0 4px 18px #0009;cursor:pointer
+}
+.show-tools.visible{display:block}
+.show-tools:hover{filter:brightness(1.12)}
+@media(max-width:900px){
+ .show-tools{top:62px;right:8px}
+}
+@media(max-width:700px){
+ .panel{width:min(82vw,260px);max-height:72vh}
+ .show-tools{top:58px;font-size:11px;padding:8px 10px}
+}
+
+.home{position:absolute;z-index:1300;left:50px;top:12px;background:#12181ee8;color:#fff;text-decoration:none;border:1px solid #ffffff25;border-radius:7px;padding:7px 9px;font-size:11px;font-weight:700}\n</style>
+</head>
+<body>\n<a class="home" href="../">← Tournaments</a>
+<div class="header">
+ <h1>2013 Macomb Mavericks — CCM World Invite 2026</h1>
+ <p>Rinks, team hotel options, routing, restaurants and teen-friendly activities.</p>
+</div>
+<div id="map"></div>
+<button id="showTools" class="show-tools" type="button" aria-label="Show search and route tools">☰ Search &amp; Route</button>
+
+<div id="modal" class="modalbg">
+ <div class="modal">
+  <h2>Choose directions</h2>
+  <p id="summary"></p>
+  <a id="google" class="g" target="_blank" rel="noopener">Google Maps</a>
+  <a id="apple" class="a" target="_blank" rel="noopener">Apple Maps</a>
+  <a id="waze" class="w" target="_blank" rel="noopener">Waze</a>
+  <p>Google Maps and Apple Maps preserve both selected endpoints. Waze opens the selected destination and routes from the device's current location.</p>
+  <button id="close">Close</button>
+ </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const permanentLocations={"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9887,41.9307]},"properties":{"id":"R1","name":"Addison Ice Arena","short_name":"Addison","address":"475 S Grace St, Addison, IL 60101","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.228,41.8048]},"properties":{"id":"R2","name":"All Seasons Ice Rinks","short_name":"All Seasons","address":"31W330 N Aurora Rd, Naperville, IL 60563","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.73,42.0145]},"properties":{"id":"R3","name":"American Heartland Ice Arena","short_name":"Heartland Ice Arena","address":"7384 Lincoln Ave, Lincolnwood, IL 60712","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8896,41.6005]},"properties":{"id":"R4","name":"Arctic Ice Arena","short_name":"Arctic","address":"10700 W 160th St, Orland Park, IL 60467","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.1305,42.1509]},"properties":{"id":"R5","name":"Barrington Ice Arena","short_name":"Barrington","address":"28W205 W Commercial Ave, Barrington, IL 60010","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.6723,41.8777]},"properties":{"id":"R6","name":"Blackhawks Ice Center","short_name":"Blackhawks Ice Center","address":"1801 W Jackson Blvd, Chicago, IL 60612","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.2896,42.0995]},"properties":{"id":"R7","name":"Canlan Sports Center – West Dundee","short_name":"Canlan West Dundee","address":"801 Wesemann Dr, West Dundee, IL 60118","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.11,41.638]},"properties":{"id":"R8","name":"Canlan Sports Romeoville","short_name":"Canlan Romeoville","address":"1581 Normantown Rd, Romeoville, IL 60446","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.819,42.201]},"properties":{"id":"R9","name":"Centennial Ice Arena – Highland Park","short_name":"Centennial Ice Arena","address":"3100 Trail Way, Highland Park, IL 60035","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.058,41.889]},"properties":{"id":"R10","name":"Center Ice of DuPage","short_name":"Center Ice of DuPage","address":"1N450 Highland Ave, Glen Ellyn, IL 60137","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.319,42.242]},"properties":{"id":"R11","name":"Crystal Ice House Arena","short_name":"Crystal Ice House","address":"320 Prairie St, Crystal Lake, IL 60014","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9814,41.7493]},"properties":{"id":"R12","name":"Darien Sports Complex","short_name":"Darien Sports Complex","address":"451 Plainfield Rd, Darien, IL 60561","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9397,41.9593]},"properties":{"id":"R13","name":"Edge on John Ice Arena","short_name":"Edge on John","address":"545 John St, Bensenville, IL 60106","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.2804,41.8586]},"properties":{"id":"R14","name":"Fox Valley Ice Rink","short_name":"Fox Valley","address":"1996 S Kirk Rd, Geneva, IL 60134","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8665,41.9475]},"properties":{"id":"R15","name":"Franklin Park Ice Arena","short_name":"Franklin Park","address":"9711 Waveland Ave, Franklin Park, IL 60131","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9585,42.2261]},"properties":{"id":"R16","name":"Glacier Ice Arena","short_name":"Glacier","address":"670 Lakeview Pkwy, Vernon Hills, IL 60061","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.85,42.091]},"properties":{"id":"R17","name":"Glenview Community Ice Center","short_name":"Glenview Ice Center","address":"1851 Landwehr Rd, Glenview, IL 60026","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.146,41.522]},"properties":{"id":"R18","name":"Inwood Ice Arena","short_name":"Inwood","address":"3000 W Jefferson St, Joliet, IL 60435","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.691,41.8812]},"properties":{"id":"R19","name":"Johnny’s Ice House West","short_name":"Johnny’s West","address":"2550 W Madison St, Chicago, IL 60612","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8691,42.2405]},"properties":{"id":"R20","name":"MacKenzie Ice Arena (LFA)","short_name":"MacKenzie Ice Arena","address":"1500 Kennedy Rd, Lake Forest, IL 60045","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.68,41.6835]},"properties":{"id":"R21","name":"Morgan Park Sports Center","short_name":"Morgan Park","address":"11505 S Western Ave, Chicago, IL 60643","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.94,42.0834]},"properties":{"id":"R22","name":"Mount Prospect Ice Arena","short_name":"Mount Prospect","address":"1501 Feehanville Dr, Mount Prospect, IL 60056","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.831,42.132]},"properties":{"id":"R23","name":"North Shore Ice Arena","short_name":"North Shore","address":"2111 Founders Dr, Northbrook, IL 60062","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.737,41.7225]},"properties":{"id":"R24","name":"Oak Lawn Ice Arena","short_name":"Oak Lawn","address":"9320 S Kenton Ave, Oak Lawn, IL 60453","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.859,42.026]},"properties":{"id":"R25","name":"Oakton Ice Arena","short_name":"Oakton","address":"2800 Oakton St, Park Ridge, IL 60068","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.043,42.101]},"properties":{"id":"R26","name":"Orbit Ice Arena","short_name":"Orbit","address":"615 S Consumers Ave, Palatine, IL 60074","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.933,42.532]},"properties":{"id":"R27","name":"Pleasant Prairie RecPlex","short_name":"Pleasant Prairie","address":"9900 Terwall Terrace, Pleasant Prairie, WI 53158","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.699,42.0332]},"properties":{"id":"R28","name":"Robert Crown Community Center","short_name":"Robert Crown","address":"1801 Main St, Evanston, IL 60202","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.082,41.7005]},"properties":{"id":"R29","name":"Rocket Ice Skating Rink","short_name":"Rocket Ice","address":"180 Canterbury Ln, Bolingbrook, IL 60440","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.873,41.994]},"properties":{"id":"R30","name":"Rosemont Ice Arena","short_name":"Rosemont","address":"7115 Barry St, Rosemont, IL 60018","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.124,42.052]},"properties":{"id":"R31","name":"Scott R. Triphahn Community Center","short_name":"Triphahn Center","address":"1685 W Higgins Rd, Hoffman Estates, IL 60169","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.071,41.768]},"properties":{"id":"R32","name":"Seven Bridges Ice Arena","short_name":"Seven Bridges","address":"6690 IL-53, Woodridge, IL 60517","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.756,41.659]},"properties":{"id":"R33","name":"Southwest Ice Arena","short_name":"Southwest","address":"5505 W 127th St, Crestwood, IL 60418","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.929,41.9516]},"properties":{"id":"R34","name":"The Edge Ice Arena","short_name":"The Edge","address":"735 E Jefferson St, Bensenville, IL 60106","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.94,42.37]},"properties":{"id":"R35","name":"Top Shelf Ice Arena","short_name":"Top Shelf","address":"6152 W Grand Ave, Gurnee, IL 60031","type":"rink"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8874,42.0037]},"properties":{"id":"H1","name":"Holiday Inn Express & Suites Chicago O'Hare Airport","short_name":"Holiday Inn Express & Suites Chicago O'Hare Airport","address":"3001 Mannheim Rd, Des Plaines, IL 60018","type":"hotel","free_parking_breakfast":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.0178,41.9922]},"properties":{"id":"H2","name":"Country Inn & Suites by Radisson, Elk Grove Village/Itasca","short_name":"Country Inn & Suites by Radisson, Elk Grove Village/Itasca","address":"1160 W Devon Ave, Elk Grove Village, IL 60007","type":"hotel","free_parking_breakfast":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.0196,41.9877]},"properties":{"id":"H3","name":"The Westin Chicago Northwest","short_name":"The Westin Chicago Northwest","address":"400 Park Blvd, Itasca, IL 60143","type":"hotel","free_parking_breakfast":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8616,41.9807]},"properties":{"id":"H4","name":"Hyatt Regency O'Hare Chicago","short_name":"Hyatt Regency O'Hare Chicago","address":"9300 W Bryn Mawr Ave, Rosemont, IL 60018","type":"hotel","free_parking_breakfast":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-88.0047,42.0035]},"properties":{"id":"H5","name":"Hyatt Place Itasca","short_name":"Hyatt Place Itasca","address":"1150 N Arlington Heights Rd, Itasca, IL 60143","type":"hotel","free_parking_breakfast":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.8292,41.9866]},"properties":{"id":"H6","name":"SpringHill Suites Chicago O'Hare by Marriott","short_name":"SpringHill Suites Chicago O'Hare by Marriott","address":"8101 W Higgins Rd, Chicago, IL 60631","type":"hotel","free_parking_breakfast":true}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9608,41.9109]},"properties":{"id":"H7","name":"Courtyard Chicago Elmhurst/Oakbrook Area","short_name":"Courtyard Chicago Elmhurst/Oakbrook Area","address":"370 N IL Route 83, Elmhurst, IL 60126","type":"hotel","free_parking_breakfast":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9828,41.9865]},"properties":{"id":"H8","name":"DoubleTree by Hilton Hotel Chicago Wood Dale - Elk Grove","short_name":"DoubleTree by Hilton Hotel Chicago Wood Dale - Elk Grove","address":"1200 N Mittel Blvd, Wood Dale, IL 60191","type":"hotel","free_parking_breakfast":false}},{"type":"Feature","geometry":{"type":"Point","coordinates":[-87.9789,41.9788]},"properties":{"id":"H9","name":"Courtyard by Marriott Chicago Wood Dale","short_name":"Courtyard by Marriott Chicago Wood Dale","address":"900 N Wood Dale Rd, Wood Dale, IL 60191","type":"hotel","free_parking_breakfast":false}}]};
+const map=L.map("map",{zoomControl:true,scrollWheelZoom:true});
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+ maxZoom:19,
+ attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+}).addTo(map);
+
+const rinkLayer=L.layerGroup().addTo(map),hotelLayer=L.layerGroup().addTo(map),
+      poiLayer=L.layerGroup().addTo(map),inputLayer=L.layerGroup().addTo(map);
+const records=[],markers=[],labels=[];
+let origin=null,dest=null,inputMarker=null,searchCenter=null;
+
+function hockeyIcon(){
+ const svg=`<div class="hockey-wrap"><svg class="hockey-svg" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+ <circle cx="15" cy="15" r="13" fill="#12283b" stroke="#ffffff" stroke-width="1.8"/>
+ <path d="M8 6 L16.5 20.5 Q18 23 21 22 L24 21" fill="none" stroke="#7ec2ff" stroke-width="2.2" stroke-linecap="round"/>
+ <path d="M22 6 L13.5 20.5 Q12 23 9 22 L6 21" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+ <ellipse cx="15" cy="23.5" rx="4.5" ry="1.7" fill="#050708" stroke="#7ec2ff" stroke-width="1"/>
+ </svg></div>`;
+ return L.divIcon({className:"",html:svg,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-15]});
+}
+function hotelIcon(star){
+ return L.divIcon({className:"",html:star?'<div class="starhotel">★</div>':'<div class="hotel">H</div>',
+ iconSize:star?[34,34]:[27,27],iconAnchor:star?[17,17]:[13,13],popupAnchor:[0,-15]});
+}
+function poiIcon(code){
+ return L.divIcon({className:"",html:`<div class="poi">${code}</div>`,iconSize:[24,24],iconAnchor:[12,12]});
+}
+function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+function updateStatus(){
+ document.getElementById("status").innerHTML=
+ `<b>From:</b> ${origin?esc(origin.name):"not selected"}<br>`+
+ `<b>To:</b> ${dest?esc(dest.name):"not selected"}<br>`+
+ `<b>Food & Fun near:</b> ${searchCenter?esc(searchCenter.name):"select a location"}`;
+}
+function openRoute(){
+ if(!origin||!dest){updateStatus();return}
+ summary.textContent=`From ${origin.name} to ${dest.name}`;
+ google.href=`https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lon}&destination=${dest.lat},${dest.lon}&travelmode=driving`;
+ apple.href=`https://maps.apple.com/?saddr=${origin.lat},${origin.lon}&daddr=${dest.lat},${dest.lon}&dirflg=d`;
+ waze.href=`https://www.waze.com/ul?ll=${dest.lat},${dest.lon}&navigate=yes`;
+ modal.classList.add("open");
+}
+document.getElementById("close").addEventListener("click",()=>document.getElementById("modal").classList.remove("open"));
+document.getElementById("modal").addEventListener("click",e=>{
+ if(e.target===e.currentTarget)e.currentTarget.classList.remove("open");
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape")document.getElementById("modal").classList.remove("open");
+});
+
+function popupHtml(r){
+ return `<div class="popup"><b>${esc(r.name)}</b><div class="addr">${esc(r.address||"")}</div>`+
+ (r.star?'<div class="amenity">★ Free parking + free breakfast</div>':'')+
+ `<button class="from">Set as START</button><button class="to">Set as DESTINATION</button>`+
+ `<button class="near">Search Food & Fun near here</button></div>`;
+}
+function wirePopup(m,r){
+ m.on("popupopen",()=>{
+  const el=m.getPopup().getElement();
+  el.querySelector(".from").onclick=()=>{origin=r;map.closePopup();updateStatus()};
+  el.querySelector(".to").onclick=()=>{dest=r;map.closePopup();updateStatus();if(origin)openRoute()};
+  el.querySelector(".near").onclick=()=>{searchCenter=r;map.closePopup();updateStatus()};
+ });
+}
+function addPermanent(f){
+ const [lon,lat]=f.geometry.coordinates,p=f.properties;
+ const r={name:p.name,short:p.short_name||p.name,address:p.address,type:p.type,
+          star:!!p.free_parking_breakfast,lat,lon};
+ records.push(r);
+ const m=L.marker([lat,lon],{
+  icon:r.type==="hotel"?hotelIcon(r.star):hockeyIcon(),
+  title:r.name,riseOnHover:true
+ }).bindTooltip(r.short,{
+  permanent:true,direction:"right",offset:[r.type==="hotel"?15:12,0],
+  className:r.type==="hotel"?"hotel-label":"facility-label"
+ }).bindPopup(()=>popupHtml(r)).addTo(r.type==="hotel"?hotelLayer:rinkLayer);
+ wirePopup(m,r);markers.push(m);labels.push({m,r});
+}
+function updateLabels(){
+ const z=map.getZoom();
+ labels.forEach(x=>{
+  const el=x.m.getTooltip()?.getElement();
+  if(el)el.classList.toggle("hidden-label",z<10);
+  if(z>=10)x.m.setTooltipContent(z>=12?x.r.name:x.r.short);
+ });
+}
+map.on("zoomend",updateLabels);
+
+let toolsPanel=null;
+const ctl=L.control({position:"topright"});
+ctl.onAdd=()=>{
+ const d=L.DomUtil.create("div","panel");
+ toolsPanel=d;
+ d.innerHTML=`<div class="panel-head"><h3>Route planner</h3><button id="hideTools" class="hide-tools" type="button" aria-label="Hide search and route tools">×</button></div>
+ <label>Find listed hotel or rink</label>
+ <input id="listedQ" placeholder="Hotel or rink name">
+ <button id="listedBtn">Find listed location</button>
+ <label>Find any other location</label>
+ <input id="otherQ" placeholder="Address, airport, restaurant, etc.">
+ <button id="otherBtn">Find input location</button>
+ <button id="swapBtn" class="secondary">Swap start / destination</button>
+ <button id="routeBtn">Choose directions app</button>
+ <h4>Food & Fun nearby</h4>
+ <label>Search radius</label>
+ <select id="radius">
+  <option value="3219">2 miles</option>
+  <option value="8047" selected>5 miles</option>
+  <option value="16093">10 miles</option>
+ </select>
+ <div class="grid2">
+  <button data-cat="food">🍴 Food</button>
+  <button data-cat="fun">🎳 Teen Fun</button>
+  <button data-cat="treats">🍦 Treats</button>
+  <button data-cat="movies">🎬 Movies</button>
+  <button data-cat="shopping">🛍 Shopping</button>
+  <button id="clearPoi" class="secondary">Clear</button>
+ </div>
+ <button id="allBtn" class="secondary">Zoom to all hotels & rinks</button>
+ <div id="status" class="status"></div>`;
+ L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);return d;
+};
+ctl.addTo(map);
+
+const showTools=document.getElementById("showTools");
+const hideTools=document.getElementById("hideTools");
+function setToolsHidden(hidden){
+ if(!toolsPanel)return;
+ toolsPanel.classList.toggle("panel-hidden",hidden);
+ showTools.classList.toggle("visible",hidden);
+ showTools.setAttribute("aria-expanded",String(!hidden));
+}
+hideTools.addEventListener("click",()=>setToolsHidden(true));
+showTools.addEventListener("click",()=>setToolsHidden(false));
+
+/* Keep the map open on large screens, but preserve map space on phones/tablets. */
+setToolsHidden(window.matchMedia("(max-width: 900px)").matches);
+
+function findListed(){
+ const q=listedQ.value.trim().toLowerCase();
+ const i=records.findIndex(r=>r.name.toLowerCase().includes(q));
+ if(i<0){status.textContent="No matching listed hotel or rink.";return}
+ const r=records[i],m=markers[i];map.setView([r.lat,r.lon],13);m.openPopup();
+}
+listedBtn.onclick=findListed;listedQ.onkeydown=e=>{if(e.key==="Enter")findListed()};
+
+async function findOther(){
+ const q=otherQ.value.trim();if(!q)return;
+ status.textContent="Searching OpenStreetMap…";
+ try{
+  const res=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=us&q="+encodeURIComponent(q),
+                       {headers:{"Accept":"application/json"}});
+  const hits=await res.json();
+  if(!hits.length){status.textContent="No matching location found.";return}
+  const h=hits[0],r={name:q,address:h.display_name,type:"input",lat:+h.lat,lon:+h.lon};
+  if(inputMarker)inputLayer.removeLayer(inputMarker);
+  inputMarker=L.marker([r.lat,r.lon],{title:r.name})
+   .bindTooltip(r.name,{permanent:true,direction:"right",className:"poi-label"})
+   .bindPopup(()=>popupHtml(r)).addTo(inputLayer);
+  wirePopup(inputMarker,r);map.setView([r.lat,r.lon],13);inputMarker.openPopup();searchCenter=r;updateStatus();
+ }catch(e){status.textContent="Location search failed. Try again shortly."}
+}
+otherBtn.onclick=findOther;otherQ.onkeydown=e=>{if(e.key==="Enter")findOther()};
+swapBtn.onclick=()=>{[origin,dest]=[dest,origin];updateStatus()};
+routeBtn.onclick=openRoute;
+allBtn.onclick=()=>map.fitBounds(L.featureGroup(markers).getBounds(),{padding:[35,35]});
+clearPoi.onclick=()=>{poiLayer.clearLayers();status.textContent="Food & Fun results cleared."};
+
+const queries={
+ food:[
+  'nwr(around:{R},{LAT},{LON})["amenity"~"restaurant|fast_food|food_court|cafe|pub"]',
+  'nwr(around:{R},{LAT},{LON})["shop"~"deli|supermarket"]'
+ ],
+ fun:[
+  'nwr(around:{R},{LAT},{LON})["leisure"~"bowling_alley|amusement_arcade|escape_game|trampoline_park|sports_centre"]',
+  'nwr(around:{R},{LAT},{LON})["sport"~"bowling|karting|climbing"]',
+  'nwr(around:{R},{LAT},{LON})["tourism"~"theme_park|attraction"]',
+  'nwr(around:{R},{LAT},{LON})["amenity"~"arts_centre|community_centre"]'
+ ],
+ treats:[
+  'nwr(around:{R},{LAT},{LON})["amenity"~"ice_cream|cafe"]',
+  'nwr(around:{R},{LAT},{LON})["shop"~"bakery|confectionery|chocolate|ice_cream"]'
+ ],
+ movies:[
+  'nwr(around:{R},{LAT},{LON})["amenity"="cinema"]'
+ ],
+ shopping:[
+  'nwr(around:{R},{LAT},{LON})["shop"~"mall|department_store"]',
+  'nwr(around:{R},{LAT},{LON})["landuse"="retail"]'
+ ]
+};
+
+const overpassEndpoints=[
+ "https://overpass.private.coffee/api/interpreter",
+ "https://overpass-api.de/api/interpreter"
+];
+
+function resolveFoodFunCenter(){
+ if(searchCenter)return searchCenter;
+ if(origin)return origin;
+ if(dest)return dest;
+ const c=map.getCenter();
+ return {name:"current map center",lat:c.lat,lon:c.lng};
+}
+
+function buildOverpassQuery(cat,center,rad){
+ const statements=(queries[cat]||[]).map(template =>
+  template
+   .replaceAll("{R}",String(rad))
+   .replaceAll("{LAT}",String(center.lat))
+   .replaceAll("{LON}",String(center.lon))+";"
+ ).join("");
+ return `[out:json][timeout:18];(${statements});out center 40;`;
+}
+
+async function fetchOverpass(query){
+ let lastError=null;
+ for(const endpoint of overpassEndpoints){
+  try{
+   const response=await fetch(endpoint,{
+    method:"POST",
+    headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+    body:"data="+encodeURIComponent(query)
+   });
+   if(!response.ok){
+    lastError=new Error(`${response.status} ${response.statusText} from ${new URL(endpoint).host}`);
+    continue;
+   }
+   const contentType=response.headers.get("content-type")||"";
+   if(!contentType.includes("json")){
+    lastError=new Error(`Unexpected response from ${new URL(endpoint).host}`);
+    continue;
+   }
+   return await response.json();
+  }catch(err){
+   lastError=err;
+  }
+ }
+ throw lastError||new Error("All nearby-search services failed.");
+}
+
+async function poiSearch(cat){
+ const center=resolveFoodFunCenter();
+ searchCenter=center;
+ updateStatus();
+ poiLayer.clearLayers();
+ status.textContent=`Finding ${cat==="fun"?"Teen Fun":cat} near ${center.name}…`;
+ const rad=+radius.value;
+ const query=buildOverpassQuery(cat,center,rad);
+
+ try{
+  const data=await fetchOverpass(query);
+  const seen=new Set();
+  let count=0;
+  const codes={food:"F",fun:"!",treats:"T",movies:"M",shopping:"S"};
+
+  for(const x of (data.elements||[])){
+   if(count>=20)break;
+   const name=x.tags?.name;
+   if(!name||seen.has(name))continue;
+   seen.add(name);
+
+   const lat=x.lat??x.center?.lat;
+   const lon=x.lon??x.center?.lon;
+   if(lat==null||lon==null)continue;
+
+   const address=[
+    x.tags?.["addr:housenumber"],
+    x.tags?.["addr:street"],
+    x.tags?.["addr:city"]
+   ].filter(Boolean).join(" ");
+
+   const r={name,address,type:"poi",lat,lon};
+   const m=L.marker([lat,lon],{
+    icon:poiIcon(codes[cat]),
+    title:name
+   }).bindPopup(()=>popupHtml(r)).addTo(poiLayer);
+
+   wirePopup(m,r);
+   count++;
+  }
+
+  if(count){
+   status.textContent=`${count} nearby results shown around ${center.name}.`;
+   const poiMarkers=poiLayer.getLayers();
+   if(poiMarkers.length){
+    const group=L.featureGroup(poiMarkers);
+    const b=group.getBounds();
+    if(b.isValid())map.fitBounds(b,{padding:[30,30],maxZoom:14});
+   }
+  }else{
+   status.textContent=`No mapped ${cat==="fun"?"Teen Fun":cat} results found within ${radius.options[radius.selectedIndex].text} of ${center.name}. Try a larger radius.`;
+  }
+ }catch(err){
+  console.error("Food & Fun search failed:",err,query);
+  status.textContent=`Nearby search failed: ${err.message||"service unavailable"}. Try again in a few seconds.`;
+ }
+}
+document.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",()=>poiSearch(b.dataset.cat)));
+
+
+function load(){
+ permanentLocations.features.forEach(addPermanent);
+ map.fitBounds(L.featureGroup(markers).getBounds(),{padding:[35,35]});
+ updateLabels();
+ updateStatus();
+}
+L.control.layers(null,{"Rinks":rinkLayer,"Hotels":hotelLayer,"Food & Fun":poiLayer,"Searched location":inputLayer},{collapsed:true}).addTo(map);
+const legend=L.control({position:"bottomleft"});
+legend.onAdd=()=>{const d=L.DomUtil.create("div","legend");d.innerHTML="<div>🏒 Tournament rink</div><div>H Team hotel</div><div>★ Free parking + free breakfast</div><div>● Food & Fun result</div>";return d};
+legend.addTo(map);
+L.control.scale({imperial:true,metric:false}).addTo(map);
+load();
+</script>
+</body></html>
